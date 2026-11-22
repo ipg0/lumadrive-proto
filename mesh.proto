@@ -1,0 +1,235 @@
+syntax = "proto3";
+
+package mesh_interop;
+
+message MeshInteropNode {
+  int64 last_synced_at = 1;
+  bytes mac = 2;
+}
+
+message MeshInteropState {
+  bool is_discovery_mode = 1;
+  repeated MeshInteropNode nodes = 3;
+}
+
+// Physical driver slots. The historical names for slots 1/2 are retained;
+// hardware type is reported independently in LayoutOutput.driver_kind.
+enum MatrixDriver {
+  DRIVER_UNSPECIFIED = 0; WS2812 = 1; HC595 = 2;
+  DRIVER_3 = 3; DRIVER_4 = 4; DRIVER_5 = 5; DRIVER_6 = 6;
+}
+enum MatrixDriverKind { KIND_UNSPECIFIED = 0; LED_STRIP = 1; RGB_LED_MODULE = 2; }
+// Physical locations, ordered continuously from rear left around to rear right.
+enum CarPosition {
+  POSITION_UNSPECIFIED = 0;
+  REAR_LEFT_DOOR = 1; REAR_LEFT_POCKET = 2; REAR_LEFT_HANDLE = 3;
+  REAR_LEFT_FOOTWELL = 4;
+  FRONT_LEFT_DOOR = 5; FRONT_LEFT_POCKET = 6; FRONT_LEFT_HANDLE = 7;
+  FRONT_LEFT_FOOTWELL = 8; CONSOLE_LEFT = 9; DASH_LEFT = 10;
+  DASH_RIGHT = 11; CONSOLE_RIGHT = 12; FRONT_RIGHT_FOOTWELL = 13;
+  FRONT_RIGHT_HANDLE = 14; FRONT_RIGHT_POCKET = 15; FRONT_RIGHT_DOOR = 16;
+  REAR_RIGHT_FOOTWELL = 17;
+  REAR_RIGHT_HANDLE = 18; REAR_RIGHT_POCKET = 19; REAR_RIGHT_DOOR = 20;
+}
+enum MatrixInterpolation { LINEAR = 0; STEP = 1; SMOOTH = 2; }
+message MatrixColor {
+  uint32 red = 1; uint32 green = 2; uint32 blue = 3; uint32 alpha = 4;
+}
+message MatrixKeyframe {
+  uint32 time_ms = 1;
+  uint32 red = 2; uint32 green = 3; uint32 blue = 4; uint32 alpha = 5;
+  MatrixInterpolation interpolation = 6; // from this frame toward the next
+  float position = 7; // left edge in pixels; fractional and negative positions allowed
+  optional float width = 8; // defaults to one pixel; explicit zero collapses the track
+  bool all_pixels = 9; // explicit whole-driver track
+  uint32 track_id = 10; // stable identity while position, width, and RGBA change
+  bool wrap = 11; // spatially wrap at the driver's ends; constant within a track
+}
+message MatrixEffect {
+  uint32 id = 1;
+  enum Kind {
+    EFFECT_UNSPECIFIED = 0; STATIC_COLOR = 1; KEYFRAMES = 2;
+    BLINK = 3; BREATHE = 4; FLOWING_GRADIENT = 5; RAINBOW = 6; FILL = 7;
+  }
+  Kind kind = 2;
+  uint32 red = 3; uint32 green = 4; uint32 blue = 5; uint32 alpha = 6;
+  uint32 duration_ms = 7; // zero means indefinite
+  uint32 period_ms = 8; // parametric effects: zero defaults to 1000 ms
+  uint32 duty_percent = 9; // blink: zero defaults to 50 percent
+  MatrixColor secondary_color = 10; // legacy two-color gradient fallback
+  repeated MatrixKeyframe keyframes = 11; // up to 16 frames across independent spatial tracks
+  bool loop = 12; // keyframes: wrap at last frame; fill: repeat passes
+  uint32 wavelength_pixels = 13; // gradient: zero means one cycle per driver
+  bool reverse = 14; // gradient or fill: move toward decreasing pixel indices
+  string name = 15;
+  repeated MatrixColor gradient_colors = 16; // 2..8 equally spaced cyclic RGBA stops
+  bool fill_from_center = 17; // fill: expand symmetrically from the shared canvas center
+}
+message MatrixSource {
+  uint32 id = 1;
+  enum Kind { SOURCE_UNSPECIFIED = 0; DEFAULT_STATE = 1; GPIO_EDGE = 2; ON_BOOT = 3; ON_MODE_SWITCHED = 4; }
+  Kind kind = 2;
+  bytes node_mac = 3;
+  uint32 gpio = 4;
+  bool rising = 5;
+}
+message MatrixCondition {
+  uint32 id = 1;
+  enum Kind { CONDITION_UNSPECIFIED = 0; ALWAYS = 1; MODE = 2; AND = 3; OR = 4; }
+  Kind kind = 2;
+  uint32 mode_id = 3;
+  bool inverted = 4; // MODE matches any mode except mode_id
+  uint32 left_id = 5; // AND/OR child condition IDs
+  uint32 right_id = 6;
+}
+message MatrixMode { uint32 id = 1; string name = 2; }
+// Boundary indices: 0 -> 60 covers pixels 0..59; 12 -> 10 covers 11,10.
+message MatrixLayout {
+  bytes node_mac = 1; MatrixDriver driver = 2;
+  uint32 from = 3; uint32 to = 4;
+  string name = 5;
+  uint32 source_index = 6; // strip: 0; 595: independently placed LED 0 or 1
+  CarPosition car_position = 7; // optional location used by the simple editor
+}
+message MatrixEntry {
+  uint32 id = 1; uint32 effect_id = 2; uint32 source_id = 3;
+  uint32 condition_id = 4; uint32 priority = 5;
+  reserved 6;
+  reserved "targets"; // animations always render on the entire configured layout
+  string name = 7;
+  bool opaque_background = 8; // hide lower layers while this entry is active
+}
+message MatrixConfig {
+  uint32 schema_version = 1; // development version 0: one authoritative layout for all animations
+  repeated MatrixEffect effects = 2;
+  repeated MatrixSource sources = 3;
+  repeated MatrixCondition conditions = 4;
+  repeated MatrixEntry entries = 5;
+  repeated MatrixLayout layout = 6; // the car's physical layout, shared by every entry
+  bool factory_default = 7; // firmware-owned; cleared by any user upload
+  repeated MatrixMode modes = 8;
+  uint32 active_mode_id = 9; // zero means no mode selected
+  optional uint32 center_index = 10; // canvas boundary; absent uses the dash-based automatic center
+}
+
+message TransferBegin { fixed32 transfer_id = 1; fixed32 total_size = 2; fixed32 crc32 = 3; }
+message TransferChunk { fixed32 transfer_id = 1; uint32 offset = 2; bytes data = 3; }
+message MatrixUpload {
+  oneof operation {
+    TransferBegin begin = 1;
+    TransferChunk chunk = 2;
+    fixed32 commit = 3;
+    fixed32 abort = 4;
+    LayoutRequest layout_request = 5;
+    TransferBegin layout_begin = 6;
+    TransferBegin matrix_begin = 7;
+  }
+}
+// Layout-only uploads use the same begin/chunk/commit transport as matrices.
+message LayoutUpdate {
+  uint64 expected_revision = 1; uint64 master_session = 2;
+  repeated MatrixLayout layout = 3;
+  optional uint32 center_index = 4;
+}
+// Edits the matrix and animation library, preserving the current physical layout.
+message MatrixUpdate {
+  uint64 expected_revision = 1; uint64 master_session = 2;
+  repeated MatrixEffect effects = 3; repeated MatrixSource sources = 4;
+  repeated MatrixCondition conditions = 5; repeated MatrixEntry entries = 6;
+  repeated MatrixMode modes = 7; uint32 active_mode_id = 8;
+}
+message MatrixInputNode {
+  bytes node_mac = 1; repeated uint32 gpios = 2;
+  bool known = 3; bool online = 4;
+  string firmware_version = 5; // empty until the node reports its version
+}
+message MatrixDocument {
+  bytes config = 1; // canonical MatrixConfig bytes, at most 16 KiB
+  uint64 revision = 2; uint64 master_session = 3; bytes master_mac = 4;
+  repeated MatrixInputNode nodes = 5;
+  uint64 active_revision = 6;
+  bool activation_pending = 7;
+  bool persisted = 8;
+  string master_firmware_version = 9;
+}
+message LayoutOutput {
+  bytes node_mac = 1; MatrixDriver driver = 2; uint32 pixel_count = 3;
+  bool online = 4; bool ready = 5; bool known = 6;
+  MatrixDriverKind driver_kind = 7;
+  uint32 source_index = 8;
+  uint32 max_pixel_count = 9; // configurable upper bound; allocation can still fail
+}
+message LayoutSnapshot {
+  uint64 master_session = 1; uint64 revision = 2;
+  repeated MatrixLayout layout = 3;
+  repeated LayoutOutput outputs = 4;
+  uint32 pending_nodes = 5;
+  bytes master_mac = 6;
+  optional uint32 center_index = 7;
+}
+message LayoutRequest {
+  uint32 request_id = 1;
+  enum Operation { READ = 0; IDENTIFY = 1; READ_MATRIX = 2; READ_ACTIVE_MATRIX = 3; }
+  Operation operation = 2;
+  fixed32 snapshot_id = 3;
+  uint32 offset = 4;
+  uint32 output_index = 5;
+  // MTU-23 identify preview: inventory output index in bits 0..7, LED count in 8..19
+  // (zero uses current capacity), reversed in bit 20; remaining bits reserved.
+  optional fixed32 identify_options = 6;
+}
+message LayoutResponse {
+  uint32 request_id = 1; string error = 2;
+  fixed32 snapshot_id = 3; uint32 total_size = 4; uint32 offset = 5;
+  bytes data = 6;
+  bool complete = 7;
+}
+message MatrixNodeStatus {
+  bytes node_mac = 1;
+  enum State { UNAVAILABLE = 0; PREPARING = 1; READY = 2; DEGRADED = 3; }
+  State state = 2;
+}
+message MatrixStatus {
+  fixed32 transfer_id = 1;
+  enum Stage { IDLE = 0; RECEIVING = 1; VALIDATING = 2; DISTRIBUTING = 3; ACTIVE = 4; FAILED = 5; }
+  Stage stage = 2;
+  uint32 received_bytes = 3;
+  uint64 revision = 4;
+  uint64 master_session = 5;
+  string error = 6;
+  repeated MatrixNodeStatus nodes = 7;
+  bytes master_mac = 8; // ESP-NOW identity; BLE addresses may be different.
+}
+
+// Slaves receive renderable layers and input pins, never trigger/condition rules.
+message AnimationLayer {
+  uint32 entry_id = 1; MatrixEffect effect = 2;
+  reserved 3;
+  reserved "drivers";
+  uint32 priority = 4; uint32 order = 5;
+  bool opaque_background = 6;
+}
+message AnimationOutputMapping {
+  MatrixDriver driver = 1; uint32 from = 2; uint32 to = 3;
+  uint32 source_index = 4;
+}
+message AnimationDefinitions {
+  uint32 schema_version = 1; uint64 master_session = 2; uint64 revision = 3;
+  repeated AnimationLayer layers = 4;
+  repeated uint32 gpio_inputs = 5; // node-local inputs; report both edges
+  uint32 canvas_size = 6; // same global extent on every node
+  repeated AnimationOutputMapping output_mappings = 7; // only this node's outputs
+  optional uint32 center_index = 8; // resolved global boundary
+}
+message AnimationCommand {
+  uint64 master_session = 1; uint64 revision = 2; uint32 sequence = 3;
+  uint32 entry_id = 4; uint64 effective_at_us = 5;
+  bool stop = 6;
+}
+message AnimationState { uint32 entry_id = 1; uint64 started_at_us = 2; bool active = 3; }
+message AnimationSnapshot {
+  uint64 master_session = 1; uint64 revision = 2; uint32 sequence = 3;
+  uint64 activate_at_us = 4;
+  repeated AnimationState states = 5;
+  repeated AnimationCommand pending = 6;
+}

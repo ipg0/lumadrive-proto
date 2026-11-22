@@ -1,0 +1,53 @@
+mesh_interop.MeshInteropNode.mac max_size:6 fixed_length:true
+mesh_interop.MeshInteropState.nodes max_count:16
+mesh_interop.MatrixSource.node_mac max_size:6 fixed_length:true
+mesh_interop.MatrixLayout.node_mac max_size:6 fixed_length:true
+mesh_interop.MatrixLayout.name max_size:129
+mesh_interop.MatrixEffect.name max_size:129
+mesh_interop.MatrixEntry.name max_size:129
+mesh_interop.MatrixMode.name max_size:129
+mesh_interop.MatrixUpdate.modes max_count:32
+mesh_interop.MatrixConfig.modes max_count:32
+mesh_interop.MatrixUpdate.effects max_count:32
+mesh_interop.MatrixUpdate.sources max_count:32
+mesh_interop.MatrixUpdate.conditions max_count:32
+mesh_interop.MatrixUpdate.entries max_count:32
+mesh_interop.MatrixInputNode.node_mac max_size:6 fixed_length:true
+mesh_interop.MatrixInputNode.firmware_version max_size:32
+mesh_interop.MatrixDocument.master_firmware_version max_size:32
+mesh_interop.MatrixInputNode.gpios max_count:40
+mesh_interop.MatrixDocument.config max_size:16384
+mesh_interop.MatrixDocument.master_mac max_size:6 fixed_length:true
+mesh_interop.MatrixDocument.nodes max_count:17
+mesh_interop.LayoutUpdate.layout max_count:84
+mesh_interop.LayoutOutput.node_mac max_size:6 fixed_length:true
+mesh_interop.LayoutSnapshot.layout max_count:84
+mesh_interop.LayoutSnapshot.outputs max_count:204
+mesh_interop.LayoutSnapshot.master_mac max_size:6 fixed_length:true
+mesh_interop.LayoutResponse.error max_size:96
+mesh_interop.LayoutResponse.data max_size:320
+mesh_interop.MatrixConfig.effects max_count:32
+mesh_interop.MatrixConfig.sources max_count:32
+mesh_interop.MatrixConfig.conditions max_count:32
+mesh_interop.MatrixConfig.entries max_count:32
+mesh_interop.MatrixConfig.layout max_count:84
+mesh_interop.MatrixEffect.keyframes max_count:16
+mesh_interop.MatrixEffect.gradient_colors max_count:8
+mesh_interop.MatrixKeyframe.red int_size:IS_8
+mesh_interop.MatrixKeyframe.green int_size:IS_8
+mesh_interop.MatrixKeyframe.blue int_size:IS_8
+mesh_interop.MatrixKeyframe.alpha int_size:IS_8
+mesh_interop.MatrixColor.red int_size:IS_8
+mesh_interop.MatrixColor.green int_size:IS_8
+mesh_interop.MatrixColor.blue int_size:IS_8
+mesh_interop.MatrixColor.alpha int_size:IS_8
+mesh_interop.TransferChunk.data max_size:480
+mesh_interop.MatrixStatus.error max_size:96
+mesh_interop.MatrixStatus.nodes max_count:17
+mesh_interop.MatrixStatus.master_mac max_size:6 fixed_length:true
+mesh_interop.MatrixNodeStatus.node_mac max_size:6 fixed_length:true
+mesh_interop.AnimationDefinitions.layers max_count:32
+mesh_interop.AnimationDefinitions.gpio_inputs max_count:32
+mesh_interop.AnimationDefinitions.output_mappings max_count:12
+mesh_interop.AnimationSnapshot.states max_count:32
+mesh_interop.AnimationSnapshot.pending max_count:64
