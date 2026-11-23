@@ -172,7 +172,7 @@ message LayoutSnapshot {
 }
 message LayoutRequest {
   uint32 request_id = 1;
-  enum Operation { READ = 0; IDENTIFY = 1; READ_MATRIX = 2; READ_ACTIVE_MATRIX = 3; }
+  enum Operation { READ = 0; IDENTIFY = 1; READ_MATRIX = 2; READ_ACTIVE_MATRIX = 3; PREVIEW = 4; }
   Operation operation = 2;
   fixed32 snapshot_id = 3;
   uint32 offset = 4;
@@ -212,6 +212,10 @@ message AnimationLayer {
   reserved "drivers";
   uint32 priority = 4; uint32 order = 5;
   bool opaque_background = 6;
+}
+message AnimationPreview {
+  uint64 master_session = 1; uint64 revision = 2;
+  uint64 start_at_us = 3; uint64 end_at_us = 4; MatrixEffect effect = 5;
 }
 message AnimationOutputMapping {
   MatrixDriver driver = 1; uint32 from = 2; uint32 to = 3;
