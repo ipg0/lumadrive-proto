@@ -75,12 +75,15 @@ message MatrixSource {
 }
 message MatrixCondition {
   uint32 id = 1;
-  enum Kind { CONDITION_UNSPECIFIED = 0; ALWAYS = 1; MODE = 2; AND = 3; OR = 4; NEVER = 5; }
+  enum Kind { CONDITION_UNSPECIFIED = 0; ALWAYS = 1; MODE = 2; AND = 3; OR = 4; NEVER = 5; GPIO_STATE = 6; }
   Kind kind = 2;
   uint32 mode_id = 3;
   bool inverted = 4; // MODE matches any mode except mode_id
   uint32 left_id = 5; // AND/OR child condition IDs
   uint32 right_id = 6;
+  bytes node_mac = 7; // GPIO_STATE input owner
+  uint32 gpio = 8;
+  bool high = 9; // logical level after hardware inversion
 }
 message MatrixMode { uint32 id = 1; string name = 2; }
 // Boundary indices: 0 -> 60 covers pixels 0..59; 12 -> 10 covers 11,10.

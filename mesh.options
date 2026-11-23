@@ -1,6 +1,7 @@
 mesh_interop.MeshInteropNode.mac max_size:6 fixed_length:true
 mesh_interop.MeshInteropState.nodes max_count:16
 mesh_interop.MatrixSource.node_mac max_size:6 fixed_length:true
+mesh_interop.MatrixCondition.node_mac max_size:6 fixed_length:true
 mesh_interop.MatrixLayout.node_mac max_size:6 fixed_length:true
 mesh_interop.MatrixLayout.name max_size:129
 mesh_interop.MatrixEffect.name max_size:129
