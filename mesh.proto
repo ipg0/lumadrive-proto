@@ -62,8 +62,10 @@ message MatrixEffect {
   uint32 wavelength_pixels = 13; // gradient: zero means one cycle per driver
   bool reverse = 14; // gradient or fill: move toward decreasing pixel indices
   string name = 15;
-  repeated MatrixColor gradient_colors = 16; // 2..8 equally spaced cyclic RGBA stops
+  repeated MatrixColor gradient_colors = 16; // gradient or breathe: 2..8 cyclic RGBA colors
   bool fill_from_center = 17; // fill: expand symmetrically from the shared canvas center
+  optional uint32 region_start = 18; // inclusive canvas boundary; absent means 0
+  optional uint32 region_end = 19; // exclusive canvas boundary; absent means canvas size
 }
 message MatrixSource {
   uint32 id = 1;
@@ -98,7 +100,7 @@ message MatrixEntry {
   uint32 id = 1; uint32 effect_id = 2; uint32 source_id = 3;
   uint32 condition_id = 4; uint32 priority = 5;
   reserved 6;
-  reserved "targets"; // animations always render on the entire configured layout
+  reserved "targets"; // animations use the shared layout and may select a region
   string name = 7;
   bool opaque_background = 8; // hide lower layers while this entry is active
 }
