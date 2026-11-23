@@ -49,10 +49,10 @@ message MatrixEffect {
   uint32 id = 1;
   enum Kind {
     EFFECT_UNSPECIFIED = 0; STATIC_COLOR = 1; KEYFRAMES = 2;
-    BLINK = 3; BREATHE = 4; FLOWING_GRADIENT = 5; RAINBOW = 6; FILL = 7;
+    BLINK = 3; BREATHE = 4; FLOWING_GRADIENT = 5; RAINBOW = 6; FILL = 7; DIMMING = 8;
   }
   Kind kind = 2;
-  uint32 red = 3; uint32 green = 4; uint32 blue = 5; uint32 alpha = 6;
+  uint32 red = 3; uint32 green = 4; uint32 blue = 5; uint32 alpha = 6; // DIMMING uses black and alpha as dim amount
   uint32 duration_ms = 7; // zero means indefinite
   uint32 period_ms = 8; // parametric effects: zero defaults to 1000 ms
   uint32 duty_percent = 9; // blink: zero defaults to 50 percent
@@ -75,7 +75,7 @@ message MatrixSource {
 }
 message MatrixCondition {
   uint32 id = 1;
-  enum Kind { CONDITION_UNSPECIFIED = 0; ALWAYS = 1; MODE = 2; AND = 3; OR = 4; }
+  enum Kind { CONDITION_UNSPECIFIED = 0; ALWAYS = 1; MODE = 2; AND = 3; OR = 4; NEVER = 5; }
   Kind kind = 2;
   uint32 mode_id = 3;
   bool inverted = 4; // MODE matches any mode except mode_id
