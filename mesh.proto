@@ -79,6 +79,7 @@ message MatrixEffect {
   optional uint32 region_start = 18; // inclusive canvas boundary; absent means 0
   optional uint32 region_end = 19; // exclusive canvas boundary; absent means canvas size
   AnimationModulation modulation = 20;
+  bool breathe_stop_at_last = 21; // color-cycle breathe: stop on the last palette color
 }
 message MatrixSource {
   uint32 id = 1;
