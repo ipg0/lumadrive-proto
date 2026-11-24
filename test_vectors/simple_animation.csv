@@ -1,0 +1,20 @@
+# kind,elapsed_ms,pixel,count,reverse,center,red,green,blue,alpha
+# Shared samples use a 1000 ms period, 50% blink duty, opaque red primary,
+# and an opaque red/blue palette for breathe and gradient.
+blink,0,0,4,0,0,255,0,0,255
+blink,500,0,4,0,0,0,0,0,0
+breathe,0,0,4,0,0,255,0,0,255
+breathe,250,0,4,0,0,128,0,128,255
+breathe,500,0,4,0,0,0,0,255,255
+rainbow,0,0,4,0,0,255,0,0,255
+rainbow,0,1,4,0,0,128,255,0,255
+rainbow,250,0,4,0,0,128,0,255,255
+fill,0,0,4,0,0,0,0,0,0
+fill,250,0,4,0,0,255,0,0,255
+fill,250,1,4,0,0,0,0,0,0
+fill,250,3,4,1,0,255,0,0,255
+fill,250,1,4,0,1,255,0,0,255
+fill,250,0,4,0,1,0,0,0,0
+fill,1000,3,4,0,0,255,0,0,255
+gradient,0,1,4,0,0,128,0,128,255
+gradient,250,0,4,0,0,128,0,128,255

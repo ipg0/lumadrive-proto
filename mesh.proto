@@ -12,10 +12,10 @@ message MeshInteropState {
   repeated MeshInteropNode nodes = 3;
 }
 
-// Physical driver slots. The historical names for slots 1/2 are retained;
-// hardware type is reported independently in LayoutOutput.driver_kind.
+// Physical driver slots; hardware type is reported independently in
+// LayoutOutput.driver_kind.
 enum MatrixDriver {
-  DRIVER_UNSPECIFIED = 0; WS2812 = 1; HC595 = 2;
+  DRIVER_UNSPECIFIED = 0; DRIVER_1 = 1; DRIVER_2 = 2;
   DRIVER_3 = 3; DRIVER_4 = 4; DRIVER_5 = 5; DRIVER_6 = 6;
 }
 enum MatrixDriverKind { KIND_UNSPECIFIED = 0; LED_STRIP = 1; RGB_LED_MODULE = 2; }
