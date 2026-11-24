@@ -35,6 +35,18 @@ enum MatrixInterpolation { LINEAR = 0; STEP = 1; SMOOTH = 2; }
 message MatrixColor {
   uint32 red = 1; uint32 green = 2; uint32 blue = 3; uint32 alpha = 4;
 }
+message SignalGenerator {
+  uint32 id = 1; string name = 2;
+  enum Kind { SIGNAL_UNSPECIFIED = 0; SINE = 1; TRIANGLE = 2; SQUARE = 3; SAWTOOTH = 4; REVERSE_SAWTOOTH = 5; SENSOR = 6; }
+  Kind kind = 3; uint32 period_ms = 4;
+  float amplitude = 5; float offset = 6; float phase = 7;
+  bytes node_mac = 8; uint32 sensor_id = 9;
+}
+message AnimationModulation {
+  uint32 signal_id = 1; float minimum = 2; float maximum = 3;
+  enum Curve { LINEAR = 0; EASE_IN = 1; EASE_OUT = 2; SMOOTH = 3; }
+  Curve curve = 4;
+}
 message MatrixKeyframe {
   uint32 time_ms = 1;
   uint32 red = 2; uint32 green = 3; uint32 blue = 4; uint32 alpha = 5;
@@ -66,6 +78,7 @@ message MatrixEffect {
   bool fill_from_center = 17; // fill: expand symmetrically from the shared canvas center
   optional uint32 region_start = 18; // inclusive canvas boundary; absent means 0
   optional uint32 region_end = 19; // exclusive canvas boundary; absent means canvas size
+  AnimationModulation modulation = 20;
 }
 message MatrixSource {
   uint32 id = 1;
@@ -115,6 +128,7 @@ message MatrixConfig {
   repeated MatrixMode modes = 8;
   uint32 active_mode_id = 9; // zero means no mode selected
   optional uint32 center_index = 10; // canvas boundary; absent uses the dash-based automatic center
+  repeated SignalGenerator signals = 11;
 }
 
 message TransferBegin { fixed32 transfer_id = 1; fixed32 total_size = 2; fixed32 crc32 = 3; }
@@ -142,6 +156,7 @@ message MatrixUpdate {
   repeated MatrixEffect effects = 3; repeated MatrixSource sources = 4;
   repeated MatrixCondition conditions = 5; repeated MatrixEntry entries = 6;
   repeated MatrixMode modes = 7; uint32 active_mode_id = 8;
+  repeated SignalGenerator signals = 9;
 }
 message MatrixInputNode {
   bytes node_mac = 1; repeated uint32 gpios = 2;
